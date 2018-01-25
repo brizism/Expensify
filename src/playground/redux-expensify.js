@@ -133,6 +133,30 @@ const filtersReducer = (state = filtersReducerDefaultState, action) => {
   }
 }
 
+// timestamps (+ or - integer value) (milliseconds)
+// January 1st 1970 (unix epoch) starting point of our timestamps
+
+
+// Get visible expenses function
+// destructuring the second argument of filters creating variables for the individual ones
+const getVisibleExpenses = (expenses, { text, sortBy, startDate, endDate }) => {
+  return expenses.filter(expense => {
+    const startDateMatch = typeof startDate !== 'number' || expense.createdAt >= startDate;
+    const endDateMatch = typeof endDate !== 'num' || expense.createdAt <= endDate;
+    const textMatch = expense.description.toLowerCase().includes(text.toLowerCase());
+
+    // if all three match, they'll be kept in the array
+    return startDateMatch && endDateMatch && textMatch
+  }).sort((a, b) => {
+    if(sortBy === 'date'){
+      return a.createdAt < b.createdAt ? 1 : -1;
+    } if(sortBy === 'amount'){
+      return a.amount < b.amount ? 1 : -1;
+    }
+  });
+};
+
+
 // Store Creation
 
 const store = createStore(
@@ -145,25 +169,27 @@ const store = createStore(
 );
 
 store.subscribe(() => {
-  console.log(store.getState())
+  const state = store.getState(); // saving the entire state of entire expenses array and all of the filters
+  const visibleExpenses = getVisibleExpenses(state.expenses, state.filters); // saving the return value and passing the state of expenses and filters
+  console.log(visibleExpenses)
 });
 
-// const expenseOne = store.dispatch(addExpense({ description: 'Rent', amount: 100 }));
-// const expenseTwo = store.dispatch(addExpense({ description: 'Coffee', amount: 300 }));
+const expenseOne = store.dispatch(addExpense({ description: 'Rent', amount: 100, createdAt: -21000 }));
+const expenseTwo = store.dispatch(addExpense({ description: 'Coffee', amount: 300, createdAt: -1000 }));
 
 // store.dispatch(removeExpense({ id:expenseOne.expense.id }))
 // store.dispatch(editExpense(expenseTwo.expense.id, { amount: 500 }))
 
-// store.dispatch(setTextFilter('rent'));
-// store.dispatch(setTextFilter(''));
+//store.dispatch(setTextFilter('rent'));
+//store.dispatch(setTextFilter(''));
 
-// store.dispatch(sortByAmount());
+store.dispatch(sortByAmount());
 // store.dispatch(sortByDate());
 
 
-store.dispatch(setStartDate(125))
-store.dispatch(setStartDate())
-store.dispatch(setEndDate(1250))
+// store.dispatch(setStartDate(0))
+// store.dispatch(setStartDate())
+// store.dispatch(setEndDate(999))
 
 
 // const demoState = {
